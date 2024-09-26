@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discussion App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            color: #333;
+            overflow: hidden;
+        }
+        #left-pane, #right-pane {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        #left-pane {
+            background: white;
+            border-right: 1px solid #ddd;
+            transition: all 0.5s ease;
+        }
+        #right-pane {
+            padding-left: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-left: 1px solid #ddd;
+            transition: all 0.5s ease;
+        }
+        h2, h3 {
+            color: #2C3E50;
+        }
+        .form-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        .form-section:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        .form-field {
+            margin-bottom: 15px;
+        }
+        .form-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495E;
+        }
+        .form-field input, .form-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            transition: border 0.3s ease;
+        }
+        .form-field input:focus, .form-field textarea:focus {
+            border: 2px solid #007BFF;
+            outline: none;
+        }
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #74ebd5, #ACB6E5);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #ACB6E5, #74ebd5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .resolve-btn {
+            background: linear-gradient(45deg, #56ab2f, #a8e063);
+            margin-top: 20px;
+        }
+        .resolve-btn:hover {
+            background: linear-gradient(45deg, #a8e063, #56ab2f);
+        }
+        #left-pane h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2C3E50;
+        }
+        .question-box {
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .question-box:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        .response-box {
+            padding: 10px;
+            background-color: #f1f1f1;
+            margin-bottom: 10px;
+            border-left: 4px solid #007BFF;
+            border-radius: 6px;
+        }
+        .previous-answers {
+            margin-top: 20px;
+        }
+        .previous-answers h3 {
+            color: #34495E;
+        }
+        @media only screen and (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #left-pane, #right-pane {
+                flex: none;
+                width: 100%;
+            }
+            #right-pane {
+                padding-left: 15px;
+            }
+        }
+        /* Back button */
+        .back-btn {
+            margin-top: 20px;
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+        }
+        .back-btn:hover {
+            background: linear-gradient(45deg, #FF4B2B, #FF416C);
+        }
+    </style>
+</head>
+<body>
+    <div id="left-pane">
+        <h2>Questions</h2>
+        <!-- List of questions will appear here -->
+        <div id="questions-list">
+            <p>No questions yet. Ask something!</p>
+        </div>
+    </div>
+
+    <div id="right-pane">
+        <Center><h1>DISCUSSION PORTAL</h1></Center>
+        <!-- Default form to ask questions -->
+        <div id="question-form" class="form-section">
+            <h2>Ask a Question</h2>
+            <form id="question-form-element" onsubmit="submitQuestion(event)">
+                <div class="form-field">
+                    <label for="title">Title (Required)</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-field">
+                    <label for="question">Question (Required)</label>
+                    <textarea id="question" rows="4" required></textarea>
+                </div>
+                <button type="submit">Submit Question</button>
+            </form>
+        </div>
+
+        <!-- Question detail & response form -->
+        <div id="question-detail" class="form-section" style="display:none;">
+            <h2 id="selected-question-title"></h2>
+            <p id="selected-question-text"></p>
+
+            <form id="response-form-element" onsubmit="submitResponse(event)">
+                <div class="form-field">
+                    <label for="response-name">Name (Required)</label>
+                    <input type="text" id="response-name" required>
+                </div>
+                <div class="form-field">
+                    <label for="response-comment">Comment (Required)</label>
+                    <textarea id="response-comment" rows="3" required></textarea>
+                </div>
+                <button type="submit">Submit Response</button>
+            </form>
+
+            <!-- Resolve button -->
+            <button class="resolve-btn" onclick="resolveQuestion()">Resolve</button>
+
+            <!-- Previous Responses -->
+            <div id="responses" class="previous-answers">
+                <h3>Previous Responses:</h3>
+            </div>
+            <!-- Back to Ask Question button -->
+            <button class="back-btn" onclick="goBackToQuestionForm()">Back to Ask a Question</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = []; // Store all questions and responses
+        let selectedQuestionIndex = null;
+
+        // Submit a new question using the required attribute
+        function submitQuestion(event) {
+            event.preventDefault(); // Prevent form from submitting in the traditional way
+
+            const title = document.getElementById("title").value.trim();
+            const questionText = document.getElementById("question").value.trim();
+
+            const question = { title, questionText, responses: [] };
+            questions.push(question);
+
+            // Clear the form after successful submission
+            document.getElementById("title").value = "";
+            document.getElementById("question").value = "";
+
+            // Update the questions list on the left pane
+            displayQuestions();
+        }
+
+        // Display questions on the left pane
+        function displayQuestions() {
+            const questionsList = document.getElementById("questions-list");
+            questionsList.innerHTML = "";
+
+            if (questions.length === 0) {
+                questionsList.innerHTML = "<p>No questions yet. Ask something!</p>";
+                return;
+            }
+
+            questions.forEach((question, index) => {
+                const questionBox = document.createElement("div");
+                questionBox.className = "question-box";
+                questionBox.innerHTML = `<strong>${question.title}</strong><br>${question.questionText}`;
+                questionBox.onclick = function() {
+                    showQuestionDetail(index);
+                };
+                questionsList.appendChild(questionBox);
+            });
+        }
+
+        // Show selected question and its responses
+        function showQuestionDetail(index) {
+            selectedQuestionIndex = index;
+            const selectedQuestion = questions[index];
+
+            // Show question detail in the right pane
+            document.getElementById("selected-question-title").textContent = selectedQuestion.title;
+            document.getElementById("selected-question-text").textContent = selectedQuestion.questionText;
+
+            // Display existing responses
+            displayResponses(selectedQuestion.responses);
+
+            // Hide question form and show question detail
+            document.getElementById("question-form").style.display = "none";
+            document.getElementById("question-detail").style.display = "block";
+        }
+
+        // Submit a new response with validation using required attribute
+        function submitResponse(event) {
+            event.preventDefault(); // Prevent form from submitting traditionally
+
+            const name = document.getElementById("response-name").value.trim();
+            const comment = document.getElementById("response-comment").value.trim();
+
+            const response = { name, comment };
+            questions[selectedQuestionIndex].responses.push(response);
+
+            // Clear the response form
+            document.getElementById("response-name").value = "";
+            document.getElementById("response-comment").value = "";
+
+            // Update the response list
+            displayResponses(questions[selectedQuestionIndex].responses);
+        }
+
+        // Display responses for the selected question
+        function displayResponses(responses) {
+            const responsesContainer = document.getElementById("responses");
+            responsesContainer.innerHTML = "<h3>Previous Responses:</h3>";
+
+            if (responses.length === 0) {
+                responsesContainer.innerHTML += "<p>No responses yet.</p>";
+                return;
+            }
+
+            responses.forEach(response => {
+                const responseBox = document.createElement("div");
+                responseBox.className = "response-box";
+                responseBox.innerHTML = `<strong>${response.name}:</strong><br>${response.comment}`;
+                responsesContainer.appendChild(responseBox);
+            });
+        }
+
+        // Mark question as resolved and remove it
+        function resolveQuestion() {
+            if (confirm("Are you sure you want to resolve this question?")) {
+                questions.splice(selectedQuestionIndex, 1);
+                goBackToQuestionForm();
+                displayQuestions();
+            }
+        }
+
+        // Return to the ask question form
+        function goBackToQuestionForm() {
+            document.getElementById("question-form").style.display = "block";
+            document.getElementById("question-detail").style.display = "none";
+        }
+
+        // Initialize the app
+        displayQuestions();
+    </script>
+</body>
+</html>
